@@ -19,6 +19,9 @@ import seaborn as sns
 elements_ = ['sio2', 'tio2', 'al2o3', 'feo', 'fe2o3',
              'mno', 'na2o', 'k2o', 'mgo', 'cao', 'p2o5',
              'h2o']
+elements_1 = ['SiO2', 'TiO2', 'Al2O3', 'FeO', 'Fe2O3',
+             'MnO', 'Na2O', 'K2O', 'MgO', 'CaO', 'P2O5',
+             'H2O']
 
 ## Portabilité du code (à changer !!!)
 from pathlib import Path
@@ -61,6 +64,9 @@ df = pd.concat([X, y], axis=1)
 # Calcul de la corrélation de Pearson
 pear_corr = df.corr(method='pearson')
 
+# Remplace les valeurs de la diagonale par NaN
+np.fill_diagonal(pear_corr.values, np.nan)
+
 # Application de style pour l'affichage
 pear_corr.style.background_gradient(cmap='Greens', axis=0)
 
@@ -80,17 +86,19 @@ plt.show()
 # Tracer les histogrammes pour toutes les colonnes numériques
 
 nombre = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-fig, axes = plt.subplots(3, 4, figsize=(15, 10))  # 3 lignes, 4 colonnes
+fig, axes = plt.subplots(3, 4, figsize=(15, 10), constrained_layout=True)  # 3 lignes, 4 colonnes
 
 for idx, (col, ax, nb) in enumerate(zip(elements_, axes.ravel(), nombre)):
     # Utiliser 'idx' comme nom de colonne pour X_train
     column_name = str(idx)  # Convertir l'indice en chaîne pour accéder à la colonne
     ax.hist(X_train[column_name], bins=20, color='skyblue', edgecolor='black')
-    ax.set_title(f"{col}")  # Titre avec le nom de l'élément et 'nombre'
+    nom=elements_1[idx]
+    col_with_indices = nom.replace("2", "_{2}").replace("3", "_{3}").replace("5", "_{5}")
+    ax.set_title(f"${col_with_indices}$")  # Ajouter le format LaTeX
     ax.set_xlabel("Normalized content (in %)")
     ax.set_ylabel("Frequency")
 
-fig, axes = plt.subplots(3, 4, figsize=(15, 10))  # 3 lignes, 4 colonnes
+fig, axes = plt.subplots(3, 4, figsize=(15, 10), constrained_layout=True)  # 3 lignes, 4 colonnes
 
 for idx, (col, ax, nb) in enumerate(zip(elements_, axes.ravel(), nombre)):
     # Utiliser 'idx' comme nom de colonne pour X_train
@@ -100,16 +108,49 @@ for idx, (col, ax, nb) in enumerate(zip(elements_, axes.ravel(), nombre)):
     ax.set_xlabel("Normalized content (in %)")
     ax.set_ylabel("Frequency")
 
+for idx, (col, ax, nb) in enumerate(zip(elements_, axes.ravel(), nombre)):
+    # Utiliser 'idx' comme nom de colonne pour X_train
+    column_name = str(idx)  # Convertir l'indice en chaîne pour accéder à la colonne
+    ax.hist(X_test[column_name], bins=20, color='orange', edgecolor='black')
 
-fig, ax= plt.subplots()
-ax= sns.boxplot(data=y_train, palette="Set3")
-ax.set_ylabel("Density")
-ax.set_title("Box-and-whisker plot depicting the distribution of training densities")
+    # Formater le titre avec LaTeX pour les indices
+    nom=elements_1[idx]
+    col_with_indices = nom.replace("2", "_{2}").replace("3", "_{3}").replace("5", "_{5}")
+    ax.set_title(f"${col_with_indices}$")  # Ajouter le format LaTeX
 
-fig, ax= plt.subplots()
-ax= sns.boxplot(data=y_test, palette="Set3")
-ax.set_ylabel("Densité")
-ax.set_title("Box-and-whisker plot depicting the distribution of testing densities")
+    ax.set_xlabel("Normalized content (in %)")
+    ax.set_ylabel("Frequency")
+
+mean_value1 = np.mean(y_train)
+median_value1 = np.median(y_train)
+mean_value2 = np.mean(y_test)
+median_value2 = np.median(y_test)
+
+# Définir les limites horizontales communes
+min_value = min(min(y_train), min(y_test))
+max_value = max(max(y_train), max(y_test))
+
+
+
+fig, axes = plt.subplots(2, 1, figsize=(8, 6),constrained_layout=True)
+axes[0].hist(y_train, bins=30, color='skyblue', edgecolor='black')
+axes[0].axvline(mean_value1, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_value1:.2f}')
+axes[0].axvline(mean_value1, color='red', linestyle='--', linewidth=2, label=f'Median: {median_value1:.2f}')
+axes[0].set_xlim(min_value, max_value)
+axes[0].set_xlabel("Density (in g/$cm_{3}$)")
+axes[0].set_ylabel("Frequency")
+axes[0].set_title("Histogram of the density distribution in the training dataset")
+axes[0].legend(fontsize=10)
+
+
+axes[1].hist(y_test, bins=30, color='orange', edgecolor='black')
+axes[1].axvline(mean_value2, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_value2:.2f}')
+axes[1].axvline(mean_value2, color='red', linestyle='--', linewidth=2, label=f'Median: {median_value2:.2f}')
+axes[1].set_xlim(min_value, max_value)
+axes[1].set_xlabel("Density (in g/$cm_{3}$)")
+axes[1].set_ylabel("Frequency")
+axes[1].set_title("Histogram of the density distribution in the test dataset")
+axes[1].legend(fontsize=10)
 
 
 plt.show()

@@ -6,7 +6,7 @@
 # see embedded licence file
 # we use pathlib to handle paths
 
-## Code portability (to change)
+## Portabilité du code (à changer !!!)
 from pathlib import Path
 
 # Définir le chemin racine #Chemin à changer
@@ -362,22 +362,20 @@ def generate_density_profile(db, T_planet):
         
         elements_ = ['sio2', 'tio2', 'al2o3', 'feo', 'fe2o3','mno', 'na2o', 'k2o', 'mgo', 'cao', 'p2o5','h2o']
         
-        X_planet=planet_result.loc[:,elements_].values
+        X_planet=planet_result.loc[:,elements_]
         
         planet_result["D_liquid_planet"]=ANN_model.predict(X_planet)
         
-        error=mapie_model.predict(X_planet, alpha=0.05)
+        
+        error=mapie_model.predict(X_planet, alpha=0.95)
         planet_result["D_liquid_planet_pred"]=error[0]
         planet_result["D_liquid_planet_low"]=error[1][:, 0]
         planet_result["D_liquid_planet_up"]=error[1][:, 1]
         
-        planet_result["Interval"]=abs(planet_result["D_liquid_planet"]-planet_result["D_liquid_planet_pred"])
-        planet_result["Interval_low"]=planet_result["D_liquid_planet_low"]
-        planet_result["Interval_up"]=planet_result["D_liquid_planet_up"]
         
         planet_result["D"]=(planet_result["prct_cpx"]*d_cpx+planet_result["prct_opx"]*d_opx+planet_result["prct_an"]*d_an+planet_result["prct_ol"]*d_ol+planet_result["prct_l"]*planet_result["D_liquid_planet"])/100
-        planet_result["D_low"]=(planet_result["prct_cpx"]*d_cpx+planet_result["prct_opx"]*d_opx+planet_result["prct_an"]*d_an+planet_result["prct_ol"]*d_ol+planet_result["prct_l"]*(planet_result["D_liquid_planet"]-planet_result["D_liquid_planet_low"]))/100
-        planet_result["D_up"]=(planet_result["prct_cpx"]*d_cpx+planet_result["prct_opx"]*d_opx+planet_result["prct_an"]*d_an+planet_result["prct_ol"]*d_ol+planet_result["prct_l"]*(planet_result["D_liquid_planet"]+planet_result["D_liquid_planet_up"]))/100
+        planet_result["D_low"]=(planet_result["prct_cpx"]*d_cpx+planet_result["prct_opx"]*d_opx+planet_result["prct_an"]*d_an+planet_result["prct_ol"]*d_ol+planet_result["prct_l"]*(planet_result["D_liquid_planet_low"]))/100
+        planet_result["D_up"]=(planet_result["prct_cpx"]*d_cpx+planet_result["prct_opx"]*d_opx+planet_result["prct_an"]*d_an+planet_result["prct_ol"]*d_ol+planet_result["prct_l"]*(planet_result["D_liquid_planet_up"]))/100
         
         
         return planet_result
@@ -442,23 +440,18 @@ def generate_density_profile1(db, T_planet):
         
         elements_ = ['sio2', 'tio2', 'al2o3', 'feo', 'fe2o3','mno', 'na2o', 'k2o', 'mgo', 'cao', 'p2o5','h2o']
         
-        X_planet=planet_result.loc[:,elements_].values
-        X_planet_sc = StandardScaler().fit(X_planet)
+        X_planet=planet_result.loc[:,elements_]
         
         planet_result["D_liquid_planet"]=ANN_model.predict(X_planet)
-        error=mapie_model.predict(X_planet, alpha=0.05)
+        error=mapie_model.predict(X_planet, alpha=0.95)
         planet_result["D_liquid_planet_pred"]=error[0]
         planet_result["D_liquid_planet_low"]=error[1][:, 0]
         planet_result["D_liquid_planet_up"]=error[1][:, 1]
-        
-        planet_result["Interval"]=abs(planet_result["D_liquid_planet"]-planet_result["D_liquid_planet_pred"])
-        planet_result["Interval_low"]=abs(planet_result["D_liquid_planet"]-planet_result["D_liquid_planet_low"])
-        planet_result["Interval_up"]=abs(planet_result["D_liquid_planet"]+planet_result["D_liquid_planet_up"])
-        
+
 
         planet_result["D"]=(planet_result["prct_sp"]*d_sp+planet_result["prct_mel"]*d_mel+planet_result["prct_an"]*d_an+planet_result["prct_l"]*planet_result["D_liquid_planet"])/100
-        planet_result["D_low"]=(planet_result["prct_sp"]*d_sp+planet_result["prct_mel"]*d_mel+planet_result["prct_an"]*d_an+planet_result["prct_l"]*(planet_result["D_liquid_planet"]-planet_result["D_liquid_planet_low"]))/100
-        planet_result["D_up"]=(planet_result["prct_sp"]*d_sp+planet_result["prct_mel"]*d_mel+planet_result["prct_an"]*d_an+planet_result["prct_l"]*(planet_result["D_liquid_planet"]+planet_result["D_liquid_planet_up"]))/100
+        planet_result["D_low"]=(planet_result["prct_sp"]*d_sp+planet_result["prct_mel"]*d_mel+planet_result["prct_an"]*d_an+planet_result["prct_l"]*(planet_result["D_liquid_planet_low"]))/100
+        planet_result["D_up"]=(planet_result["prct_sp"]*d_sp+planet_result["prct_mel"]*d_mel+planet_result["prct_an"]*d_an+planet_result["prct_l"]*(planet_result["D_liquid_planet_up"]))/100
 
 
         return planet_result
@@ -669,7 +662,7 @@ plt.plot(lon, Result_CAI["D"], ":", linewidth=0.5, color="C5", label="CAI")
 
 # shaded areas and limits
 fill_un_pen_full_regions(-1, 5)
-plt.ylim(-1, 5)
+plt.ylim(2.25, 4)
 plt.xlim(-180, 180)
 
 # shaded areas for night, pen, day
@@ -683,7 +676,7 @@ plt.xlabel("Longitude, 0° = substellar point")
 plt.ylabel("Density at surface, g/cm³")
 
 # add legend
-plt.legend(loc="lower center")
+plt.legend(loc="upper center")
 plt.tight_layout()
 
 plt.savefig(_BASEPATH / "Density_profile_full.pdf")
@@ -714,16 +707,54 @@ plt.plot(lon, Result_CAI["D"], ":", linewidth=0.5, color="C5", label="CAI")
 
 # shaded areas and limits
 fill_un_pen_full_regions(-1, 4)
-plt.xlim(-110,-70)
-plt.ylim(-1,4)
+plt.xlim(-110,-90)
+plt.ylim(2.8,3.4)
 
 # axes labels
 plt.xlabel("Longitude, 0° = substellar point")
 plt.ylabel("Density at surface, g/cm³")
 
 # set legend
-plt.legend(loc="lower right")
+plt.legend(loc="lower left")
 
 plt.tight_layout()
 
 plt.savefig(_BASEPATH / "Density_profile_shore.pdf")
+
+# %%
+# plt.figure(figsize=(4.22,3.22), dpi=200)
+# plt.plot(lon, Result_BSE.visco, "-", linewidth=2.0, color="C3", label="BSE")
+# plt.fill_between(lon, 
+#                  Result_BSE.visco-Result_BSE.visco_std,
+#                  Result_BSE.visco+Result_BSE.visco_std,
+#                  alpha=0.3, color="C3", edgecolor="none")
+# 
+# plt.fill_betweenx([-2,23],-180,-90, color="grey", alpha=0.2)
+# plt.fill_betweenx([-2,23],90,180, color="grey", alpha=0.2)
+# plt.legend(loc=9)
+# plt.xlabel("Longitude, 0° = substellar point")
+# plt.ylabel("Viscosity at surface, log$_{10}$ Pa$\cdot$s")
+# plt.xlim(-70,70)
+# plt.ylim(-4,0)
+# plt.tight_layout()
+# 
+# plt.savefig(_BASEPATH / "Viscosity_profile_center_1.pdf")
+# 
+# plt.plot(lon, Result_FBSE.visco, "--", linewidth=2.0, color="C4", label="Fe-rich BSE")
+# plt.fill_between(lon, 
+#                  Result_FBSE.visco-Result_FBSE.visco_std,
+#                  Result_FBSE.visco+Result_FBSE.visco_std,
+#                  alpha=0.1, facecolor="C4", edgecolor="none")
+# plt.legend(loc=9)
+# 
+# plt.savefig(_BASEPATH / "Viscosity_profile_center_2.pdf")
+# 
+# 
+# plt.plot(lon, Result_CAI.visco, ":", linewidth=2.0, color="C5", label="CAI")
+# plt.fill_between(lon, 
+#                  Result_CAI.visco-Result_CAI.visco_std,
+#                  Result_CAI.visco+Result_CAI.visco_std,
+#                  alpha=0.3, color="C5", edgecolor="none")
+# plt.legend(loc=9)
+# 
+# plt.savefig(_BASEPATH / "Viscosity_profile_center_3.pdf")
